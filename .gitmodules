@@ -1,0 +1,3 @@
+[submodule "detect-record-human-voice"]
+	path = detect-record-human-voice
+	url = git@github.com:yoiyang/detect-record-human-voice.git
