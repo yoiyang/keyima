@@ -1,13 +1,14 @@
+#!/usr/bin/env python3
 import operator
 import audioop
 from functools import reduce
 from math import sqrt
 from collections import deque
 from typing import Optional
-from queue import SimpleQueue
+from multiprocessing import Queue
 
-import recorder
-import config
+from . import recorder
+from . import config
 
 
 def is_human_talking(threshold: int, window: deque) -> bool:
@@ -15,7 +16,7 @@ def is_human_talking(threshold: int, window: deque) -> bool:
 
 
 def listen_for_sentences(max_num_sentences: Optional[int] = None,
-                         queue: SimpleQueue = None) -> None:
+                         queue: Queue = None) -> None:
     audio_configs = config.get_pyaudio_config()
     save_location = config.get_save_location()
     # open pyaudio record session
@@ -32,6 +33,7 @@ def listen_for_sentences(max_num_sentences: Optional[int] = None,
         num_sentences = 0
         noise_threshold = config.get_initial_noise_threshold()
 
+        print('Listening..')
         # busy loop detecting voices
         while True:
             cur_buffer = stream.read(config.frames_per_buffer)
@@ -47,10 +49,8 @@ def listen_for_sentences(max_num_sentences: Optional[int] = None,
             # stop when no one is speaking
             sentence[lead_in_capacity-len(lead_in):lead_in_capacity] = lead_in
             file_path = save_data(sentence, audio_configs, save_location)
-            queue.put_nowait(file_path)
-            print(f"Saved to {file_path}. Listening..")
             if queue:
-                print(f"Queue size {queue.qsize()}")
+                queue.put_nowait(file_path)
             num_sentences += 1
             if max_num_sentences and num_sentences >= max_num_sentences:
                 break
@@ -63,5 +63,5 @@ def listen_for_sentences(max_num_sentences: Optional[int] = None,
 
 
 if __name__ == "__main__":
-    q = SimpleQueue()
+    q = Queue()
     listen_for_sentences(queue=q)
