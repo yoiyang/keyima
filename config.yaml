@@ -1,0 +1,5 @@
+
+# language: 'en-US'
+
+server_url: 'http://127.0.0.1:20000/'
+server_token: 'qwertasd'
