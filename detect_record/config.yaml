@@ -1,0 +1,14 @@
+
+# language: 'en-US'
+
+# initial intensity level for noise
+initial-threshold: 1000
+# duration of silence to end a sentence
+silence-after-voice: 1.5
+# duration before a setence
+silence-before-voice: 0.5
+# samples / sec
+sample-rate: 16000
+
+# store sentence audio files to
+save-to: '.'
