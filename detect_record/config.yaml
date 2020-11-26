@@ -2,11 +2,17 @@
 # language: 'en-US'
 
 # initial intensity level for noise
-initial-threshold: 1000
+initial-threshold: 1200
+# minimum intensity level for noise
+min-threshold: 1000
+# minimum delta of threshold to udpate noise threshold
+min-delta-threshold: 100
 # duration of silence to end a sentence
 silence-after-voice: 1.5
 # duration before a setence
 silence-before-voice: 0.5
+# minimum sentence duration
+min-voice-time: 2
 # samples / sec
 sample-rate: 16000
 
