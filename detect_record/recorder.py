@@ -11,7 +11,7 @@ def new_stream(*args, **kwds) -> Tuple[pyaudio.Stream, Callable]:
     stream = p.open(**kwds)
 
     def save_data(data: list, configs: dict, save_loc: str) -> str:
-        file_path = f'{save_loc}/sentence_{int(time.time())}.wav'
+        file_path = f'{save_loc}/rec_{int(time.time())}.wav'
 
         with wave.open(file_path, 'wb') as wf:
             data = b''.join(data)

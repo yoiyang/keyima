@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import os
 import yaml
-import requests
 import wave
 import numpy as np
 from pathlib import Path
 from multiprocessing import Queue
 from typing import Tuple
 from multiprocessing import Process
+import azure.cognitiveservices.speech as speechsdk
 
 from detect_record import detect_record
 
@@ -38,17 +38,27 @@ def process_recorded_data(file_q: Queue) -> None:
     configs = {}
     with open(config_file_path, 'r') as config_file:
         c = yaml.safe_load(config_file)
-        configs['url'] = c['server_url']
-        configs['token'] = c['server_token']
+        configs['key'] = c['azure_subscription_key']
+        configs['endpoint'] = c['azure_endpoint']
+        configs['region'] = c['azure_region']
+
+    speech_config = speechsdk.SpeechConfig(
+        region=configs['region'], subscription=configs['key'])
+    source_language_config = speechsdk.languageconfig.SourceLanguageConfig(
+        "zh-CN", configs['endpoint'])
 
     while True:
         new_file_path = file_q.get()
-        # send it to the server
-        wavsignal, fs = read_wav_data(new_file_path)
-        data = {'token': configs['token'], 'fs': fs, 'wavs': wavsignal}
-        r = requests.post(configs['url'], data)
-        r.encoding = 'utf-8'
-        print(r.text)
+        # send it to microsoft
+        audio_input = speechsdk.AudioConfig(filename=new_file_path)
+        speech_recognizer = speechsdk.SpeechRecognizer(
+            speech_config=speech_config,
+            source_language_config=source_language_config,
+            audio_config=audio_input)
+        result = speech_recognizer.recognize_once()
+        if result.reason != speechsdk.ResultReason.RecognizedSpeech:
+            print(result)
+        print(result.text)
         # remove the processed file
         Path(new_file_path).unlink()
 
@@ -66,7 +76,7 @@ if __name__ == "__main__":
     try:
         p1.join()
         p2.join()
-    except Exception:
+    except KeyboardInterrupt:
         print('Cleaning up..')
         p1.terminate()
         p2.terminate()

@@ -15,6 +15,12 @@ def is_human_talking(threshold: int, window: deque) -> bool:
     return reduce(operator.add, map(lambda x: x > threshold, window)) > 0
 
 
+def window_avg_intensity(window: deque) -> int:
+    if window:
+        return sum(list(window)) / len(window)
+    return 0
+
+
 def listen_for_sentences(max_num_sentences: Optional[int] = None,
                          queue: Queue = None) -> None:
     audio_configs = config.get_pyaudio_config()
@@ -34,8 +40,13 @@ def listen_for_sentences(max_num_sentences: Optional[int] = None,
         noise_threshold = config.get_initial_noise_threshold()
 
         print('Listening..')
+        i = 0
         # busy loop detecting voices
         while True:
+            if i % 100 == 0:
+                i += 1
+                print(f'avg: {window_avg_intensity(window)}')
+
             cur_buffer = stream.read(config.frames_per_buffer)
             # TODO(yoiyang): why sqrt and 4
             window.append(sqrt(abs(audioop.avg(cur_buffer, 4))))
