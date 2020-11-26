@@ -7,6 +7,7 @@ from pathlib import Path
 from multiprocessing import Queue
 from typing import Tuple
 from multiprocessing import Process
+from collections import Counter
 import azure.cognitiveservices.speech as speechsdk
 
 from detect_record import detect_record
@@ -47,6 +48,7 @@ def process_recorded_data(file_q: Queue) -> None:
     source_language_config = speechsdk.languageconfig.SourceLanguageConfig(
         "zh-CN", configs['endpoint'])
 
+    counter = Counter({"可以": 0, "吗": 0})
     while True:
         new_file_path = file_q.get()
         # send it to microsoft
@@ -59,6 +61,10 @@ def process_recorded_data(file_q: Queue) -> None:
         if result.reason != speechsdk.ResultReason.RecognizedSpeech:
             print(result)
         print(result.text)
+        for k in counter:
+            if k in result.text:
+                counter[k] += 1
+        print(f'keyima counter {min(counter.values())}')
         # remove the processed file
         Path(new_file_path).unlink()
 
